@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="question/type/saylorcode/db" VERSION="20260821" COMMENT="Saylor Code Studio question type"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="qtype_saylorcode_options" COMMENT="Which library exercise a question uses, and the content it falls back on.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="stableid" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" COMMENT="Library reference such as CS101-U01-E01. Empty means the question carries its own content."/>
+        <FIELD NAME="versionpolicy" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="latest" SEQUENCE="false" COMMENT="latest or pinned."/>
+        <FIELD NAME="pinnedversion" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Which published version, when the policy is pinned."/>
+        <FIELD NAME="profileid" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT="java17-console" SEQUENCE="false"/>
+        <FIELD NAME="entryfilename" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="Main.java" SEQUENCE="false"/>
+        <FIELD NAME="startercode" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Used when the question is not backed by the library."/>
+        <FIELD NAME="testcases" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON, same shape as the library and the activity. Hidden cases are marked and never rendered."/>
+        <FIELD NAME="referencesolution" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="questionid" TYPE="foreign-unique" FIELDS="questionid" REFTABLE="question" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="stableid" UNIQUE="false" FIELDS="stableid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
