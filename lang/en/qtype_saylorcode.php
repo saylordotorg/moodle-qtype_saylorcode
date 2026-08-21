@@ -26,6 +26,9 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['answercode'] = 'Your code ({$a})';
 $string['awaitinggrading'] = 'This answer has not been marked yet. Your code was saved. It could not be run when you submitted, so a teacher will mark it rather than the system guessing.';
+$string['casenoexpected'] = 'Test case {$a} has no expected value. Give it one, even an empty string if the program should print nothing: a missing value would be compared against nothing at all, and any submission would pass it.';
+$string['casenotanobject'] = 'Entry {$a} in the test cases is not an object.';
+$string['caseweightnotpositive'] = 'Test case {$a} has a weight of zero or less, so it could never affect the mark.';
 $string['entryfilename'] = 'File the student edits';
 $string['exercise'] = 'Exercise';
 $string['gradedbyrunning'] = 'Your code will be compiled and run against a set of tests when you submit.';

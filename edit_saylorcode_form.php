@@ -131,6 +131,12 @@ class qtype_saylorcode_edit_form extends question_edit_form {
 
         if (trim((string) ($fromform['testcases'] ?? '')) !== '' && !is_array($cases)) {
             $errors['testcases'] = get_string('testcasesinvalid', 'qtype_saylorcode');
+        } else if ($hascases) {
+            $problem = self::first_malformed_case($cases);
+
+            if ($problem !== null) {
+                $errors['testcases'] = $problem;
+            }
         }
 
         // Without either a library reference or its own cases there is nothing
@@ -140,5 +146,41 @@ class qtype_saylorcode_edit_form extends question_edit_form {
         }
 
         return $errors;
+    }
+
+    /**
+     * The first thing wrong with a set of test cases, if anything is.
+     *
+     * A well formed JSON array is not the same as a usable set of cases, and
+     * the difference matters more here than anywhere else in the suite. A case
+     * with no expected value at all was accepted, and grading then compared the
+     * program's output against an empty string: a submission that printed
+     * nothing passed it, and with the default weight of one that was full
+     * marks. On a graded quiz. So each entry is checked, not just the array.
+     *
+     * An expected value that is deliberately empty is fine. A missing one is
+     * not, because nobody means it.
+     *
+     * @param array $cases The decoded cases.
+     * @return string|null The problem, or null when they are all usable.
+     */
+    protected static function first_malformed_case(array $cases): ?string {
+        foreach ($cases as $index => $case) {
+            $position = $index + 1;
+
+            if (!is_array($case)) {
+                return get_string('casenotanobject', 'qtype_saylorcode', $position);
+            }
+
+            if (!array_key_exists('expected', $case)) {
+                return get_string('casenoexpected', 'qtype_saylorcode', $position);
+            }
+
+            if (array_key_exists('weight', $case) && (float) $case['weight'] <= 0) {
+                return get_string('caseweightnotpositive', 'qtype_saylorcode', $position);
+            }
+        }
+
+        return null;
     }
 }

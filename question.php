@@ -123,7 +123,15 @@ class qtype_saylorcode_question extends question_graded_automatically {
      * @return array|null
      */
     public function get_correct_response() {
-        $solution = trim((string) $this->referencesolution);
+        // From the same resolved version the tests came from. Reading the
+        // fallback field directly meant a library backed question showed either
+        // nothing or a solution belonging to some other version -- which for a
+        // pinned question is precisely the substitution pinning exists to stop.
+        $resolved = $this->resolve();
+
+        $solution = $resolved !== null
+            ? trim($resolved->get_reference_solution())
+            : trim((string) $this->referencesolution);
 
         return $solution === '' ? null : ['answer' => $solution];
     }
@@ -201,6 +209,16 @@ class qtype_saylorcode_question extends question_graded_automatically {
         $total = 0.0;
 
         foreach ($cases as $case) {
+            // A case with no expected value at all cannot be judged. Treating
+            // a missing one as the empty string means a program that prints
+            // nothing passes, which with the default weight is full marks --
+            // so this refuses to guess rather than handing out a mark. The
+            // editing form rejects these too; this is the layer that protects
+            // questions already saved.
+            if (!is_array($case) || !array_key_exists('expected', $case)) {
+                return null;
+            }
+
             $weight = (float) ($case['weight'] ?? 1.0);
             if ($weight <= 0) {
                 continue;

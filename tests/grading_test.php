@@ -219,6 +219,81 @@ final class grading_test extends \advanced_testcase {
     }
 
     /**
+     * A case with no expected value earns nothing.
+     *
+     * Found in review. The form accepted any non-empty JSON array, so [{}] was
+     * a valid question. Grading then defaulted the expected value to the empty
+     * string and the weight to one, which meant a program printing nothing
+     * matched and took full marks. On a graded quiz.
+     *
+     * @return void
+     */
+    public function test_a_case_with_no_expected_value_earns_no_marks(): void {
+        $this->resetAfterTest();
+        set_config('jobeurl', 'http://runner.example', 'local_saylorcode');
+
+        // Exactly the exploit: one empty case, and a program that prints nothing.
+        $question = $this->question([[]], new scripted_provider(['']));
+
+        [$fraction, $state] = $question->grade_response(['answer' => 'class Main {}']);
+
+        $this->assertNull($fraction, 'An empty test case awarded a mark.');
+        $this->assertEquals(
+            \question_state::$needsgrading,
+            $state,
+            'A malformed case was scored instead of being sent to a teacher.'
+        );
+    }
+
+    /**
+     * An expected value that is deliberately empty is honoured.
+     *
+     * The distinction the fix rests on: absent means nobody said, and empty
+     * means somebody said nothing should be printed.
+     *
+     * @return void
+     */
+    public function test_an_explicitly_empty_expected_value_is_gradable(): void {
+        $this->resetAfterTest();
+        set_config('jobeurl', 'http://runner.example', 'local_saylorcode');
+
+        $question = $this->question(
+            [['name' => 'prints nothing', 'expected' => '', 'weight' => 1]],
+            new scripted_provider([''])
+        );
+
+        [$fraction, $state] = $question->grade_response(['answer' => 'class Main {}']);
+
+        $this->assertEquals(1.0, $fraction);
+        $this->assertEquals(\question_state::$gradedright, $state);
+    }
+
+    /**
+     * The editing form refuses cases that cannot be graded.
+     *
+     * @return void
+     */
+    public function test_the_form_rejects_ungradable_cases(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+
+        // The parent class is not autoloaded, so the form file cannot be
+        // included on its own.
+        require_once($CFG->dirroot . '/question/type/edit_question_form.php');
+        require_once($CFG->dirroot . '/question/type/saylorcode/edit_saylorcode_form.php');
+
+        $method = new \ReflectionMethod(\qtype_saylorcode_edit_form::class, 'first_malformed_case');
+        $method->setAccessible(true);
+
+        $this->assertNotNull($method->invoke(null, [[]]), 'A case with no expected value was accepted.');
+        $this->assertNotNull($method->invoke(null, ['not an object']));
+        $this->assertNotNull($method->invoke(null, [['expected' => 'x', 'weight' => 0]]));
+        $this->assertNull($method->invoke(null, [['name' => 'ok', 'expected' => '']]));
+        $this->assertNull($method->invoke(null, [['name' => 'ok', 'expected' => "1\n", 'weight' => 2]]));
+    }
+
+    /**
      * An empty answer is not a complete response.
      *
      * @return void
