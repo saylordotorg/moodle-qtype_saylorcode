@@ -55,6 +55,29 @@ class restore_qtype_saylorcode_plugin extends restore_qtype_plugin {
         }
 
         $data->questionid = $newquestionid;
+
+        // Backup files are not trusted input: anyone with restore rights can
+        // import one that was edited by hand. The editing form cleans these
+        // fields on the way in, so restore has to hold them to the same shape,
+        // or a crafted archive writes values the rest of the plugin was
+        // promised it would never see. Code and test JSON stay raw, exactly as
+        // the form stores them.
+        $data->stableid = clean_param((string) ($data->stableid ?? ''), PARAM_ALPHANUMEXT);
+        $data->versionpolicy = clean_param((string) ($data->versionpolicy ?? 'latest'), PARAM_ALPHA);
+        $data->pinnedversion = clean_param($data->pinnedversion ?? null, PARAM_INT) ?: null;
+        $data->profileid = clean_param((string) ($data->profileid ?? ''), PARAM_ALPHANUMEXT);
+        $data->entryfilename = clean_param((string) ($data->entryfilename ?? ''), PARAM_FILE);
+
+        // The defaults the columns declare, for a value cleaning emptied. An
+        // empty entry filename would otherwise throw during grading instead of
+        // degrading to a question that needs attention.
+        if ($data->entryfilename === '') {
+            $data->entryfilename = 'Main.java';
+        }
+        if ($data->profileid === '') {
+            $data->profileid = 'java17-console';
+        }
+
         $newitemid = $DB->insert_record('qtype_saylorcode_options', $data);
         $this->set_mapping('qtype_saylorcode_options', $oldid, $newitemid);
     }

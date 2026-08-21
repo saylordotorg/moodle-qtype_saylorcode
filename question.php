@@ -225,15 +225,20 @@ class qtype_saylorcode_question extends question_graded_automatically {
             }
             $total += $weight;
 
-            $request = new execution_request(
-                bin2hex(random_bytes(16)),
-                $this->profileid,
-                execution_request::MODE_SUBMIT,
-                [$this->entryfilename => $answer],
-                (string) ($case['stdin'] ?? '')
-            );
-
             try {
+                // Inside the try because the constructor validates the file
+                // path and throws on a bad one. A stored entry filename this
+                // question cannot run with is a configuration problem, and it
+                // must land in the needs-grading queue like any other, not
+                // blow up the student's quiz submission.
+                $request = new execution_request(
+                    bin2hex(random_bytes(16)),
+                    $this->profileid,
+                    execution_request::MODE_SUBMIT,
+                    [$this->entryfilename => $answer],
+                    (string) ($case['stdin'] ?? '')
+                );
+
                 $result = $provider->execute($request);
             } catch (Throwable $e) {
                 // A transport failure is an outage, not a wrong answer.
