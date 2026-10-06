@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qtype_saylorcode';
 
-$plugin->version   = 2026082100;
+$plugin->version   = 2026100200;
 
 $plugin->requires  = 2024100700; // Moodle 4.5.
 $plugin->supported = [405, 405];
@@ -35,5 +35,5 @@ $plugin->release   = '0.1.0';
 $plugin->dependencies = [
     // The library, the runner and the resolver all live there. This plugin is
     // a question shaped front end onto them and cannot work without it.
-    'local_saylorcode' => 2026081904,
+    'local_saylorcode' => 2026100200,
 ];

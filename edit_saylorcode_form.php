@@ -62,7 +62,9 @@ class qtype_saylorcode_edit_form extends question_edit_form {
         $mform->hideIf('pinnedversion', 'versionpolicy', 'neq', exercise_resolver::POLICY_PINNED);
         $mform->hideIf('pinnedversion', 'stableid', 'eq', '');
 
-        $profiles = (new profile_manager())->get_menu();
+        // A question is marked by its test cases, and HTML and CSS are drawn
+        // in the browser with no output to mark, so they are not offered.
+        $profiles = (new profile_manager())->get_menu(false);
         $mform->addElement('select', 'profileid', get_string('profileid', 'qtype_saylorcode'), $profiles);
         $mform->setDefault('profileid', 'java17-console');
 
